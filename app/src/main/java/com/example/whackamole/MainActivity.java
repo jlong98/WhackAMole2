@@ -2,6 +2,7 @@ package com.example.whackamole;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,6 +20,8 @@ public class MainActivity extends AppCompatActivity {
 
     private GridLayout grid;
     private Drawable moleImage;
+    private Drawable frogImage;
+    private Drawable turkeyImage;
     private ImageView[] imageViews;
     private int moleLocation;
     private Random rand;
@@ -30,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private int health;
     private EditText healthCount;
     private Button button;
+    private int color;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         grid = findViewById(R.id.gridLayout);
         moleImage = getDrawable(R.drawable.mole);
+        frogImage = getDrawable(R.drawable.frog);
+        turkeyImage = getDrawable(R.drawable.turkey);
         imageViews = new ImageView[16];
         rand = new Random();
         handler = new Handler();
@@ -44,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         off = false;
         upMole = new updateMole();
         count = 0;
+        color = 1;
         health = 5;
         healthCount = findViewById(R.id.healthCount);
         moleCount = findViewById(R.id.moleCount);
@@ -58,6 +65,28 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+    public void helpPressed(View v){
+        Intent i = new Intent(this,helpActivity.class);
+        startActivity(i);
+    }
+
+    public void changeImage(View v){
+        Intent i = new Intent(this,ImageActivity.class);
+        startActivityForResult(i,1);
+    }
+    @Override
+    public void onActivityResult(int req, int result, Intent data){
+       color = data.getIntExtra("IMAGE",7);
+       if(color==3)
+           imageViews[moleLocation].setImageDrawable(turkeyImage);
+       else if(color == 2)
+           imageViews[moleLocation].setImageDrawable(frogImage);
+       else
+           imageViews[moleLocation].setImageDrawable(moleImage);
+
+    }
+
     public void startPressed(View v){
         if(off){
             button.setText("START");
@@ -78,7 +107,12 @@ public class MainActivity extends AppCompatActivity {
         public void run(){
             imageViews[moleLocation].setImageDrawable(null);
             moleLocation = rand.nextInt(16);
-            imageViews[moleLocation].setImageDrawable(moleImage);
+            if (color == 3)
+                imageViews[moleLocation].setImageDrawable(turkeyImage);
+            else if (color ==2)
+                imageViews[moleLocation].setImageDrawable(frogImage);
+            else
+                imageViews[moleLocation].setImageDrawable(moleImage);
             handler.postDelayed(upMole,1000);
 
         }
@@ -92,13 +126,13 @@ public class MainActivity extends AppCompatActivity {
                 health--;
                 if (health == 0) {
                     button.setText("START");
+                    Toast.makeText(this, "You lost, with a score of: " + count, Toast.LENGTH_LONG).show();
                     count = 0;
                     health = 5;
                     moleCount.setText(count + "");
                     healthCount.setText(health + "");
                     off = false;
                     handler.removeCallbacks(upMole);
-                    Toast.makeText(this, "You lost, try again?", Toast.LENGTH_LONG).show();
                 }
                 healthCount.setText(health+"");
             }
